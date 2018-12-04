@@ -1,5 +1,51 @@
 import matplotlib.pyplot as plt
 
+def draw_path (path):
+	if len(path) <= 1:
+		print ('No path exists.')
+		return
+	point_1 = path[0]
+	for point_2 in path[1:len(path)]:
+		x1 = point_1[0]
+		x2 = point_2[0]
+		y1 = point_1[1]
+		y2 = point_2[1]
+		# up
+		if x2 == x1 and y2 > y1:
+			for i in range(0, 50):
+				plt.plot(x1, y1 + i/50, 'y.')
+		# down
+		elif x2 == x1 and y2 < y1:
+			for i in range(0, 50):
+				plt.plot(x1, y1 - i/50, 'y.')
+		# left
+		elif x2 < x1 and y2 == y1:
+			for i in range(0, 50):
+				plt.plot(x1 - i/50, y1, 'y.')
+		#right
+		elif x2 > x1 and y2 == y1:
+			for i in range(0, 50):
+				plt.plot(x1 + i/50, y1, 'y.')
+		# north east
+		elif x2 > x1 and y2 > y1:
+			for i in range(0, 50):
+				plt.plot(x1 + i/50, y1 + i/50, 'y.')
+		# north west
+		elif x2 < x1 and y2 > y1:
+			for i in range(0, 50):
+				plt.plot(x1 - i/50, y1 + i/50, 'y.')
+		# south east
+		elif x2 > x1 and y2 < y1:
+			for i in range(0, 50):
+				plt.plot(x1 + i/50, y1 - i/50, 'y.')
+		# south west
+		elif x2 < x1 and y2 < y1:
+			for i in range(0, 50):
+				plt.plot(x1 - i/50, y1 - i/50, 'y.')
+		point_1 = point_2
+		plt.draw()
+		plt.pause(0.001)
+
 class Node():
 	def __init__(self, parent=None, position=None):
 		self.parent = parent
@@ -101,7 +147,7 @@ def get_path_no_sensor (dimension, obst_pos, obj_pos, actions):
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
-def get_path_no_sensor_closest_goal (dimension, obst_pos, obj_pos, actions):	
+def get_path_lidar (dimension, obst_pos, obj_pos, actions):	
 	start = (0,0)
 	visited = [start]
 	goal_found = False
@@ -171,48 +217,3 @@ def get_path_touch_tell (dimension, obst_pos, obj_pos, obj_map, dobject, actions
 		print ('Could not find the desired object!')
 
 
-def draw_path (path):
-	if len(path) <= 1:
-		print ('No path exists.')
-		return
-	point_1 = path[0]
-	for point_2 in path[1:len(path)]:
-		x1 = point_1[0]
-		x2 = point_2[0]
-		y1 = point_1[1]
-		y2 = point_2[1]
-		# up
-		if x2 == x1 and y2 > y1:
-			for i in range(0, 50):
-				plt.plot(x1, y1 + i/50, 'y.')
-		# down
-		elif x2 == x1 and y2 < y1:
-			for i in range(0, 50):
-				plt.plot(x1, y1 - i/50, 'y.')
-		# left
-		elif x2 < x1 and y2 == y1:
-			for i in range(0, 50):
-				plt.plot(x1 - i/50, y1, 'y.')
-		#right
-		elif x2 > x1 and y2 == y1:
-			for i in range(0, 50):
-				plt.plot(x1 + i/50, y1, 'y.')
-		# north east
-		elif x2 > x1 and y2 > y1:
-			for i in range(0, 50):
-				plt.plot(x1 + i/50, y1 + i/50, 'y.')
-		# north west
-		elif x2 < x1 and y2 > y1:
-			for i in range(0, 50):
-				plt.plot(x1 - i/50, y1 + i/50, 'y.')
-		# south east
-		elif x2 > x1 and y2 < y1:
-			for i in range(0, 50):
-				plt.plot(x1 + i/50, y1 - i/50, 'y.')
-		# south west
-		elif x2 < x1 and y2 < y1:
-			for i in range(0, 50):
-				plt.plot(x1 - i/50, y1 - i/50, 'y.')
-		point_1 = point_2
-		plt.draw()
-		plt.pause(0.001)
