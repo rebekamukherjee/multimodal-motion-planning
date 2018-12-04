@@ -1,6 +1,7 @@
+import random
 import matplotlib.pyplot as plt
 
-def draw_path (path):
+def draw_path(path):
 	if len(path) <= 1:
 		print ('No path exists.')
 		return
@@ -120,9 +121,10 @@ def astar(grid, start, end, actions):
 					continue
 			open_list.append(child)
 
-def get_path_no_sensor (dimension, obst_pos, obj_pos, actions):	
+def get_path_random(dimension, obst_pos, obj_pos, actions):	
 	start = (0,0)
 	goal_found = False
+	random.shuffle(obj_pos)
 	for end in obj_pos:
 		grid = []
 		for i in range(dimension+1):
@@ -137,7 +139,7 @@ def get_path_no_sensor (dimension, obst_pos, obj_pos, actions):
 			grid.append(row)		
 		path = astar(grid, start, end, actions)
 		draw_path(path)
-		user_input = input('Is this the desired object (y/n)?')
+		user_input = input('Is this the desired object (y/n)? ')
 		if user_input == 'y' or user_input == 'Y':
 			goal_found = True
 			print ('Found the desired object!')
@@ -147,7 +149,7 @@ def get_path_no_sensor (dimension, obst_pos, obj_pos, actions):
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
-def get_path_lidar (dimension, obst_pos, obj_pos, actions):	
+def get_path_next_closest(dimension, obst_pos, obj_pos, actions):	
 	start = (0,0)
 	visited = [start]
 	goal_found = False
@@ -170,7 +172,7 @@ def get_path_lidar (dimension, obst_pos, obj_pos, actions):
 			grid.append(row)		
 		path = astar(grid, start, end, actions)
 		draw_path(path)
-		user_input = input('Is this the desired object (y/n)?')
+		user_input = input('Is this the desired object (y/n)? ')
 		if user_input == 'y' or user_input == 'Y':
 			goal_found = True
 			print ('Found the desired object!')
@@ -181,7 +183,10 @@ def get_path_lidar (dimension, obst_pos, obj_pos, actions):
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
-def get_path_touch_tell (dimension, obst_pos, obj_pos, obj_map, dobject, actions):
+def get_path_tsp(dimension, obst_pos, obj_pos, actions):
+	print ('TODO')
+
+def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions, robot_type):
 	start = (0,0)
 	visited = [start]
 	goal_found = False
@@ -204,16 +209,47 @@ def get_path_touch_tell (dimension, obst_pos, obj_pos, obj_map, dobject, actions
 			grid.append(row)		
 		path = astar(grid, start, end, actions)
 		draw_path(path)
-		if obj_map[str(end)] == dobject:
-			user_input = input('Is this the desired object (y/n)?')
-			if user_input == 'y' or user_input == 'Y':
-				goal_found = True
-				print ('Found the desired object!')
-				break
+		if desired_object in ['1', '6', '7']:
+			desired_color = 'red'
+		elif desired_object in ['2', '8', '9']:
+			desired_color = 'green'
+		elif desired_object in ['3', '10', '11']:
+			desired_color = 'blue'
+		else:
+			desired_color = 'na'
+		if desired_object in ['4', '6', '8', '10']:
+			desired_shape = 'circle'
+		elif desired_object in ['5', '7', '9', '11']:
+			desired_shape = 'square'
+		else:
+			desired_shape = 'na'		
+		if robot_type == '4': # touch and tell shape
+			object_shape = obj_map[str(end)][1]
+			if object_shape == desired_shape or desired_shape == 'na':
+				user_input = input('Is this the desired object (y)?')
+				if user_input == 'y' or user_input == 'Y':
+					goal_found = True
+					print ('Found the desired object!')
+					break
+		elif robot_type == '5': # touch and tell object
+			object_color = obj_map[str(end)][0]
+			object_shape = obj_map[str(end)][1]
+			if  (((desired_object in ['1', '2', '3']) and (object_color == desired_color)) or 
+				((desired_object in ['4', '5']) and (object_shape == desired_shape)) or 
+				((desired_object in ['6', '7', '8', '9', '10', '11']) and (object_color == desired_color) and (object_shape == desired_shape))):
+				user_input = input('Is this the desired object (y)? ')
+				if user_input == 'y' or user_input == 'Y':
+					goal_found = True
+					print ('Found the desired object!')
+					break
 		start = end
 		visited.append(end)
 		obj_pos.remove(end)
 	if goal_found == False:
-		print ('Could not find the desired object!')
+		print ('Could not find the desired object!')	
 
+def get_path_visual():
+	print ('TODO')
 
+def get_path_visual_nonvisual():
+	print ('TODO')

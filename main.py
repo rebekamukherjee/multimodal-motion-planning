@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
-
 from modules import environment as env
-from modules import robot as robo
+from modules import robot
 
 print ('\nMOTION PLANNING FOR MULTIMODAL OBJECT RETRIEVAL\n')
 
@@ -12,12 +11,12 @@ print ('\nMOTION PLANNING FOR MULTIMODAL OBJECT RETRIEVAL\n')
 # Select mode
 print ('\nSelect a mode:')
 print ('1. Test (test on a benchmark environment)')
-print ('2. Play (test on a randomly generated environment)\n')
+print ('2. Play (test on a randomly generated environment)')
 mode = ''
 while True:
-	mode = input('Enter your selection: ')
+	mode = input('\nEnter your selection: ')
 	if mode not in ['1', '2']:
-		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3)\n')
+		print ('Incorrect Choice. Please enter from the following options: (1, 2)')
 	else:
 		break
 
@@ -25,29 +24,35 @@ while True:
 print ('\nSelect an environment to test:')
 print ('1. Small')
 print ('2. Medium')
-print ('3. Large\n')
+print ('3. Large')
 environment = ''
 while True:
-	environment = input('Enter your selection: ')
+	environment = input('\nEnter your selection: ')
 	if environment not in ['1', '2', '3']:
-		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3)\n')
+		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3)')
 	else:
 		break
 
 # Select robot
 print ('\nSelect the type of robot:')
-print ('1. No sensors')
-print ('2. Touch and tell color\n')
+print ('1. Explores objects in random order')
+print ('2. Explores next closest object')
+print ('3. Explores objects according to TSP') # todo
+print ('4. With non-visual sensor (shape)')
+print ('5. With non-visual sensor (object)')
+print ('6. With visual sensor') # todo
+print ('7. With visual (color) and non-visual sensor (shape)') # todo
+print ('8. With visual (color) and non-visual sensor (object)') # todo
 robot_type = ''
 while True:
-	robot_type = input('Enter your selection: ')
-	if robot_type not in ['1', '2']:
-		print ('Incorrect Choice. Please enter from the following options: (1, 2)\n')
+	robot_type = input('\nEnter your selection: ')
+	if robot_type not in ['1', '2', '3', '4', '5', '6', '7', '8']:
+		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3, 4, 5, 6, 7, 8)')
 	else:
 		break
 
 # Select desired object for touch and tell robot
-if robot_type == '2':
+if robot_type in ['4', '5', '6', '7', '8']:
 	print ('\nSelect the object that you want to be fetched:')
 	print ('1. Red Object')
 	print ('2. Green Object')
@@ -62,19 +67,19 @@ if robot_type == '2':
 	print ('11. Blue Square\n')
 	desired_object = ''
 	while True:
-		desired_object = input('Enter your selection: ')
+		desired_object = input('\nEnter your selection: ')
 		if desired_object not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']:
-			print ('Incorrect Choice. Please enter from the following options: (1, 2, 3)\n')
+			print ('Incorrect Choice. Please enter from the following options: (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)')
 		else:
 			break
 
 # Select robot actions
-print ('\nAre diagonal actions allowed for the robot?\n1. Yes\n2. No\n')
+print ('\nAre diagonal actions allowed for the robot?\n1. Yes\n2. No')
 action_type = ''
 while True:
-	action_type = input('Enter your selection: ')
+	action_type = input('\nEnter your selection: ')
 	if action_type not in ['1', '2']:
-		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3)\n')
+		print ('Incorrect Choice. Please enter from the following options: (1, 2)')
 	else:
 		break
 if action_type == '1':
@@ -87,7 +92,7 @@ elif action_type == '2':
 #  SETUP AND PLAN
 # ----------------
 
-print ('\nDrawing environment...')
+print ('\n\nDrawing environment...')
 dimension = env.draw_env(environment)
 
 print ('\nInitializing obstacles...')
@@ -104,7 +109,14 @@ else:
 
 print ('\nPlanning robot motion...')
 if robot_type == '1':
-	#robo.get_path_no_sensor(dimension, obst_pos, obj_pos, actions)
-	robo.get_path_lidar(dimension, obst_pos, obj_pos, actions)
+	robot.get_path_random(dimension, obst_pos, obj_pos, actions)
 elif robot_type == '2':
-	robo.get_path_touch_tell(dimension, obst_pos, obj_pos, obj_map, desired_object, actions)
+	robot.get_path_next_closest(dimension, obst_pos, obj_pos, actions)
+elif robot_type == '3':
+	robot.get_path_tsp(dimension, obst_pos, obj_pos, actions)
+elif robot_type == '4' or robot_type == '5':
+	robot.get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions, robot_type)
+elif robot_type == '6':
+	robot.get_path_visual()
+elif robot_type == '7' or robot_type == '8':
+	robot.get_path_visual_nonvisual()

@@ -153,16 +153,16 @@ def draw_objs (environment, obst_pos, test=False):
 		plt.plot(obj[0], obj[1], 'rs')
 	for obj in green_circles:
 		obj_map[str(obj)] = ['green', 'circle']
-		plt.plot(obj[0], obj[1], 'bo')
+		plt.plot(obj[0], obj[1], 'go')
 	for obj in green_squares:
 		obj_map[str(obj)] = ['green', 'square']
-		plt.plot(obj[0], obj[1], 'bs')
+		plt.plot(obj[0], obj[1], 'gs')
 	for obj in blue_circles:
 		obj_map[str(obj)] = ['blue', 'circle']
-		plt.plot(obj[0], obj[1], 'go')
+		plt.plot(obj[0], obj[1], 'bo')
 	for obj in blue_squares:
 		obj_map[str(obj)] = ['blue', 'square']
-		plt.plot(obj[0], obj[1], 'gs')
+		plt.plot(obj[0], obj[1], 'bs')
 	plt.draw()
 	plt.pause(2)
 	return obj_pos, obj_map
