@@ -15,6 +15,7 @@ def draw_env (environment):
 	plt.grid()
 	plt.ion()
 	plt.show()
+	plt.pause(2)
 	return dimension
 
 def draw_obst (environment, test=False):

@@ -35,23 +35,22 @@ while True:
 
 # Select robot
 print ('\nSelect the type of robot:')
-print ('1. Explores objects in random order')
-print ('2. Explores nearest neighbor')
-print ('3. With non-visual sensor (shape)')
-print ('4. With non-visual sensor (object)')
-print ('5. With visual sensor (color)')
-print ('6. With visual sensor (color) and non-visual sensor (shape)')
-print ('7. With visual sensor (color) and non-visual sensor (object)')
+print ('1. Explores nearest neighbor')
+print ('2. With non-visual sensor (shape)')
+print ('3. With non-visual sensor (object)')
+print ('4. With visual sensor (color)')
+print ('5. With visual sensor (color) and non-visual sensor (shape)')
+print ('6. With visual sensor (color) and non-visual sensor (object)')
 robot_type = ''
 while True:
 	robot_type = input('\nEnter your selection: ')
-	if robot_type not in ['1', '2', '3', '4', '5', '6', '7']:
-		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3, 4, 5, 6, 7)')
+	if robot_type not in ['1', '2', '3', '4', '5', '6']:
+		print ('Incorrect Choice. Please enter from the following options: (1, 2, 3, 4, 5, 6)')
 	else:
 		break
 
 # Select desired object for touch and tell robot
-if robot_type in ['4', '5', '6', '7', '8']:
+if robot_type in ['2', '3', '4', '5', '6']:
 	print ('\nSelect the object that you want to be fetched:')
 	print ('1. Red Object')
 	print ('2. Green Object')
@@ -63,7 +62,7 @@ if robot_type in ['4', '5', '6', '7', '8']:
 	print ('8. Green Circle')
 	print ('9. Green Square')
 	print ('10. Blue Circle')
-	print ('11. Blue Square\n')
+	print ('11. Blue Square')
 	desired_object = ''
 	while True:
 		desired_object = input('\nEnter your selection: ')
@@ -108,12 +107,10 @@ else:
 
 print ('\nPlanning robot motion...')
 if robot_type == '1':
-	robot.get_path_random(dimension, obst_pos, obj_pos, actions)
-elif robot_type == '2':
 	robot.get_path_nearest_neighbor(dimension, obst_pos, obj_pos, actions)
-elif robot_type == '3' or robot_type == '4':
+elif robot_type == '2' or robot_type == '3':
 	robot.get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions, robot_type)
-elif robot_type == '5':
+elif robot_type == '4':
 	robot. get_path_visual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions)
-elif robot_type == '6' or robot_type == '7':
+elif robot_type == '5' or robot_type == '6':
 	robot.get_path_visual_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions, robot_type)

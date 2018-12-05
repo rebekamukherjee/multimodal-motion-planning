@@ -48,7 +48,7 @@ def draw_path(path):
 		plt.pause(0.001)
 
 def euclidean_distance(point1, point2):
-	return ((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2) ** 0.5
+	return ((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
 class Node():
 	def __init__(self, parent=None, position=None):
@@ -64,14 +64,11 @@ class Node():
 def astar(grid, start, end, actions):
 	open_list = []
 	closed_list = []
-
 	start_node = Node(None, start)
 	start_node.g = start_node.h = start_node.f = 0
 	open_list.append(start_node)
-
 	end_node = Node(None, end)
 	end_node.g = end_node.h = end_node.f = 0
-
 	while len(open_list) > 0:
 		current_node = open_list[0]
 		current_index = 0
@@ -82,12 +79,13 @@ def astar(grid, start, end, actions):
 		open_list.pop(current_index)
 		closed_list.append(current_node)
 		if current_node == end_node:
+			cost = current_node.g
 			path = []
 			current = current_node
 			while current is not None:
 				path.append(current.position)
 				current = current.parent
-			return path[::-1]
+			return path[::-1], cost
 		children = []
 		for a in actions.keys():
 			if a == 'u':
@@ -111,51 +109,27 @@ def astar(grid, start, end, actions):
 			if grid[node_position[0]][node_position[1]] != 0:
 				continue
 			new_node = Node(current_node, node_position)
+			if a in ['u', 'd', 'l', 'r']:
+				new_node.g = current_node.g + 1
+			elif a in ['ne', 'nw', 'se', 'sw']:
+				new_node.g = current_node.g + 1.5
+			new_node.h = euclidean_distance(new_node.position, end_node.position)
+			new_node.f = new_node.g + new_node.h
 			children.append(new_node)
 		for child in children:
 			for closed_child in closed_list:
 				if child == closed_child:
 					continue
-			child.g = current_node.g + 1
-			child.h = euclidean_distance(child.position, end_node.position)
-			child.f = child.g + child.h
 			for open_node in open_list:
 				if child == open_node and child.g > open_node.g:
 					continue
 			open_list.append(child)
 
-def get_path_random(dimension, obst_pos, obj_pos, actions):	
-	start = (0,0)
-	goal_found = False
-	random.shuffle(obj_pos)
-	for end in obj_pos:
-		grid = []
-		for i in range(dimension+1):
-			row = []
-			for j in range(dimension+1):
-				if (i,j) in obst_pos:
-					row.append(1)
-				elif (i,j) in obj_pos and (i,j) is not start and (i,j) is not end:
-					row.append(1)
-				else:
-					row.append(0)
-			grid.append(row)		
-		path = astar(grid, start, end, actions)
-		draw_path(path)
-		user_input = input('Is this the desired object (y)? ')
-		if user_input == 'y' or user_input == 'Y':
-			goal_found = True
-			print ('Found the desired object!')
-			break
-		else:
-			start = end
-	if goal_found == False:
-		print ('Could not find the desired object!')
-
 def get_path_nearest_neighbor(dimension, obst_pos, obj_pos, actions):	
 	start = (0,0)
 	visited = [start]
 	goal_found = False
+	total_cost = 0
 	while len(obj_pos) > 0:
 		end = obj_pos[0]
 		min_dist = dimension ** 2
@@ -173,16 +147,20 @@ def get_path_nearest_neighbor(dimension, obst_pos, obj_pos, actions):
 				else:
 					row.append(0)
 			grid.append(row)		
-		path = astar(grid, start, end, actions)
+		path, cost = astar(grid, start, end, actions)
+		total_cost += cost
 		draw_path(path)
 		user_input = input('Is this the desired object (y)?  ')
+		total_cost += 5
 		if user_input == 'y' or user_input == 'Y':
 			goal_found = True
 			print ('Found the desired object!')
+			print ('Total cost: ', total_cost)
 			break
 		start = end
 		visited.append(end)
 		obj_pos.remove(end)
+		plt.plot(end[0], end[1], color='grey', marker='o')
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
@@ -204,6 +182,7 @@ def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, ac
 	start = (0,0)
 	visited = [start]
 	goal_found = False
+	total_cost = 0
 	while len(obj_pos) > 0:
 		end = obj_pos[0]
 		min_dist = dimension ** 2
@@ -221,30 +200,36 @@ def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, ac
 				else:
 					row.append(0)
 			grid.append(row)		
-		path = astar(grid, start, end, actions)
+		path, cost = astar(grid, start, end, actions)
+		total_cost += cost
 		draw_path(path)
-		if robot_type == '3': # touch and tell shape
+		if robot_type == '2': # touch and tell shape
 			object_shape = obj_map[str(end)][1]
 			if object_shape == desired_shape or desired_shape == 'na':
 				user_input = input('Is this the desired object (y)? ')
+				total_cost += 5
 				if user_input == 'y' or user_input == 'Y':
 					goal_found = True
 					print ('Found the desired object!')
+					print ('Total cost: ', total_cost)
 					break
-		elif robot_type == '4': # touch and tell object
+		elif robot_type == '3': # touch and tell object
 			object_color = obj_map[str(end)][0]
 			object_shape = obj_map[str(end)][1]
 			if  (((desired_object in ['1', '2', '3']) and (object_color == desired_color)) or 
 				((desired_object in ['4', '5']) and (object_shape == desired_shape)) or 
 				((desired_object in ['6', '7', '8', '9', '10', '11']) and (object_color == desired_color) and (object_shape == desired_shape))):
 				user_input = input('Is this the desired object (y)? ')
+				total_cost += 5
 				if user_input == 'y' or user_input == 'Y':
 					goal_found = True
 					print ('Found the desired object!')
+					print ('Total cost: ', total_cost)
 					break
 		start = end
 		visited.append(end)
 		obj_pos.remove(end)
+		plt.plot(end[0], end[1], color='grey', marker='o')
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
@@ -274,7 +259,8 @@ def get_path_visual(dimension, obst_pos, obj_pos, obj_map, desired_object, actio
 		desired_color = 'na'
 	start = (0,0)
 	visited = [start]
-	goal_found = False	
+	goal_found = False
+	total_cost = 0
 	while len(obj_pos) > 0:
 		color_map = []
 		for obj in obj_pos:
@@ -307,16 +293,20 @@ def get_path_visual(dimension, obst_pos, obj_pos, obj_map, desired_object, actio
 				else:
 					row.append(0)
 			grid.append(row)
-		path = astar(grid, start, end, actions)
+		path, cost = astar(grid, start, end, actions)
+		total_cost += cost
 		draw_path(path)
 		user_input = input('Is this the desired object (y)? ')
+		total_cost += 5
 		if user_input == 'y' or user_input == 'Y':
 			goal_found = True
 			print ('Found the desired object!')
+			print ('Total cost: ', total_cost)
 			break
 		start = end
 		visited.append(end)
 		obj_pos.remove(end)
+		plt.plot(end[0], end[1], color='grey', marker='o')
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
@@ -338,6 +328,7 @@ def get_path_visual_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_obj
 	start = (0,0)
 	visited = [start]
 	goal_found = False
+	total_cost = 0
 	while len(obj_pos) > 0:
 		color_map = []
 		for obj in obj_pos:
@@ -370,29 +361,35 @@ def get_path_visual_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_obj
 				else:
 					row.append(0)
 			grid.append(row)
-		path = astar(grid, start, end, actions)
+		path, cost = astar(grid, start, end, actions)
+		total_cost += cost
 		draw_path(path)
-		if robot_type == '6': # touch and tell shape
+		if robot_type == '5': # touch and tell shape
 			object_shape = obj_map[str(end)][1]
 			if object_shape == desired_shape or desired_shape == 'na':
 				user_input = input('Is this the desired object (y)? ')
+				total_cost += 5
 				if user_input == 'y' or user_input == 'Y':
 					goal_found = True
 					print ('Found the desired object!')
+					print ('Total cost: ', total_cost)
 					break
-		elif robot_type == '7': # touch and tell object
+		elif robot_type == '6': # touch and tell object
 			object_color = obj_map[str(end)][0]
 			object_shape = obj_map[str(end)][1]
 			if  (((desired_object in ['1', '2', '3']) and (object_color == desired_color)) or 
 				((desired_object in ['4', '5']) and (object_shape == desired_shape)) or 
 				((desired_object in ['6', '7', '8', '9', '10', '11']) and (object_color == desired_color) and (object_shape == desired_shape))):
 				user_input = input('Is this the desired object (y)? ')
+				total_cost += 5
 				if user_input == 'y' or user_input == 'Y':
 					goal_found = True
 					print ('Found the desired object!')
+					print ('Total cost: ', total_cost)
 					break
 		start = end
 		visited.append(end)
 		obj_pos.remove(end)
+		plt.plot(end[0], end[1], color='grey', marker='o')
 	if goal_found == False:
 		print ('Could not find the desired object!')
