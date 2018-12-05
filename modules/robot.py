@@ -47,6 +47,9 @@ def draw_path(path):
 		plt.draw()
 		plt.pause(0.001)
 
+def euclidean_distance(point1, point2):
+	return ((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2) ** 0.5
+
 class Node():
 	def __init__(self, parent=None, position=None):
 		self.parent = parent
@@ -114,7 +117,7 @@ def astar(grid, start, end, actions):
 				if child == closed_child:
 					continue
 			child.g = current_node.g + 1
-			child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
+			child.h = euclidean_distance(child.position, end_node.position)
 			child.f = child.g + child.h
 			for open_node in open_list:
 				if child == open_node and child.g > open_node.g:
@@ -139,7 +142,7 @@ def get_path_random(dimension, obst_pos, obj_pos, actions):
 			grid.append(row)		
 		path = astar(grid, start, end, actions)
 		draw_path(path)
-		user_input = input('Is this the desired object (y/n)? ')
+		user_input = input('Is this the desired object (y)? ')
 		if user_input == 'y' or user_input == 'Y':
 			goal_found = True
 			print ('Found the desired object!')
@@ -149,7 +152,7 @@ def get_path_random(dimension, obst_pos, obj_pos, actions):
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
-def get_path_next_closest(dimension, obst_pos, obj_pos, actions):	
+def get_path_nearest_neighbor(dimension, obst_pos, obj_pos, actions):	
 	start = (0,0)
 	visited = [start]
 	goal_found = False
@@ -157,7 +160,7 @@ def get_path_next_closest(dimension, obst_pos, obj_pos, actions):
 		end = obj_pos[0]
 		min_dist = dimension ** 2
 		for pos in obj_pos:
-			dist = ((pos[0] - start[0]) ** 2) + ((pos[1] - start[1]) ** 2)
+			dist = euclidean_distance(pos, start)
 			if dist < min_dist:
 				end = pos
 				min_dist = dist
@@ -172,7 +175,7 @@ def get_path_next_closest(dimension, obst_pos, obj_pos, actions):
 			grid.append(row)		
 		path = astar(grid, start, end, actions)
 		draw_path(path)
-		user_input = input('Is this the desired object (y/n)? ')
+		user_input = input('Is this the desired object (y)?  ')
 		if user_input == 'y' or user_input == 'Y':
 			goal_found = True
 			print ('Found the desired object!')
@@ -183,10 +186,21 @@ def get_path_next_closest(dimension, obst_pos, obj_pos, actions):
 	if goal_found == False:
 		print ('Could not find the desired object!')
 
-def get_path_tsp(dimension, obst_pos, obj_pos, actions):
-	print ('TODO')
-
 def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions, robot_type):
+	if desired_object in ['1', '6', '7']:
+		desired_color = 'red'
+	elif desired_object in ['2', '8', '9']:
+		desired_color = 'green'
+	elif desired_object in ['3', '10', '11']:
+		desired_color = 'blue'
+	else:
+		desired_color = 'na'
+	if desired_object in ['4', '6', '8', '10']:
+		desired_shape = 'circle'
+	elif desired_object in ['5', '7', '9', '11']:
+		desired_shape = 'square'
+	else:
+		desired_shape = 'na'
 	start = (0,0)
 	visited = [start]
 	goal_found = False
@@ -194,7 +208,7 @@ def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, ac
 		end = obj_pos[0]
 		min_dist = dimension ** 2
 		for pos in obj_pos:
-			dist = ((pos[0] - start[0]) ** 2) + ((pos[1] - start[1]) ** 2)
+			dist = euclidean_distance(pos, start)
 			if dist < min_dist:
 				end = pos
 				min_dist = dist
@@ -209,29 +223,15 @@ def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, ac
 			grid.append(row)		
 		path = astar(grid, start, end, actions)
 		draw_path(path)
-		if desired_object in ['1', '6', '7']:
-			desired_color = 'red'
-		elif desired_object in ['2', '8', '9']:
-			desired_color = 'green'
-		elif desired_object in ['3', '10', '11']:
-			desired_color = 'blue'
-		else:
-			desired_color = 'na'
-		if desired_object in ['4', '6', '8', '10']:
-			desired_shape = 'circle'
-		elif desired_object in ['5', '7', '9', '11']:
-			desired_shape = 'square'
-		else:
-			desired_shape = 'na'		
-		if robot_type == '4': # touch and tell shape
+		if robot_type == '3': # touch and tell shape
 			object_shape = obj_map[str(end)][1]
 			if object_shape == desired_shape or desired_shape == 'na':
-				user_input = input('Is this the desired object (y)?')
+				user_input = input('Is this the desired object (y)? ')
 				if user_input == 'y' or user_input == 'Y':
 					goal_found = True
 					print ('Found the desired object!')
 					break
-		elif robot_type == '5': # touch and tell object
+		elif robot_type == '4': # touch and tell object
 			object_color = obj_map[str(end)][0]
 			object_shape = obj_map[str(end)][1]
 			if  (((desired_object in ['1', '2', '3']) and (object_color == desired_color)) or 
@@ -246,10 +246,153 @@ def get_path_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, ac
 		visited.append(end)
 		obj_pos.remove(end)
 	if goal_found == False:
-		print ('Could not find the desired object!')	
+		print ('Could not find the desired object!')
 
-def get_path_visual():
-	print ('TODO')
+def vision_sensor(dimension, start, end, obj_map):
+	distance = ((end[0] - start[0]) ** 2) + ((end[1] - start[1]) ** 2)
+	if dimension == 4:
+		percentage = distance * 50 / 32
+	elif dimension == 8:
+		percentage = distance * 50 / 128
+	elif dimension == 16:
+		percentage = distance * 10 / 512
+	if obj_map[str(end)][0] == 'red':
+		return [(100-percentage), (percentage/2), (percentage/2)]
+	elif obj_map[str(end)][0] == 'green':
+		return [(percentage/2), (100-percentage), (percentage/2)]
+	elif obj_map[str(end)][0] == 'blue':
+		return [(percentage/2), (percentage/2), (100-percentage)]
 
-def get_path_visual_nonvisual():
-	print ('TODO')
+def get_path_visual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions):
+	if desired_object in ['1', '6', '7']:
+		desired_color = 'red'
+	elif desired_object in ['2', '8', '9']:
+		desired_color = 'green'
+	elif desired_object in ['3', '10', '11']:
+		desired_color = 'blue'
+	else:
+		desired_color = 'na'
+	start = (0,0)
+	visited = [start]
+	goal_found = False	
+	while len(obj_pos) > 0:
+		color_map = []
+		for obj in obj_pos:
+			if desired_color == 'red':
+				color_map.append(vision_sensor(dimension, start, obj, obj_map)[0])
+				max_index = color_map.index(max(color_map))
+				end = obj_pos[max_index]
+			elif desired_color == 'green':
+				color_map.append(vision_sensor(dimension, start, obj, obj_map)[1])
+				max_index = color_map.index(max(color_map))
+				end = obj_pos[max_index]
+			elif desired_color == 'blue':
+				color_map.append(vision_sensor(dimension, start, obj, obj_map)[2])
+				max_index = color_map.index(max(color_map))
+				end = obj_pos[max_index]
+			else:
+				end = obj_pos[0]
+				min_dist = dimension ** 2
+				for pos in obj_pos:
+					dist = euclidean_distance(pos, start)
+					if dist < min_dist:
+						end = pos
+						min_dist = dist		
+		grid = []
+		for i in range(dimension+1):
+			row = []
+			for j in range(dimension+1):
+				if (i,j) in obst_pos:
+					row.append(1)
+				else:
+					row.append(0)
+			grid.append(row)
+		path = astar(grid, start, end, actions)
+		draw_path(path)
+		user_input = input('Is this the desired object (y)? ')
+		if user_input == 'y' or user_input == 'Y':
+			goal_found = True
+			print ('Found the desired object!')
+			break
+		start = end
+		visited.append(end)
+		obj_pos.remove(end)
+	if goal_found == False:
+		print ('Could not find the desired object!')
+
+def get_path_visual_nonvisual(dimension, obst_pos, obj_pos, obj_map, desired_object, actions, robot_type):
+	if desired_object in ['1', '6', '7']:
+		desired_color = 'red'
+	elif desired_object in ['2', '8', '9']:
+		desired_color = 'green'
+	elif desired_object in ['3', '10', '11']:
+		desired_color = 'blue'
+	else:
+		desired_color = 'na'
+	if desired_object in ['4', '6', '8', '10']:
+		desired_shape = 'circle'
+	elif desired_object in ['5', '7', '9', '11']:
+		desired_shape = 'square'
+	else:
+		desired_shape = 'na'
+	start = (0,0)
+	visited = [start]
+	goal_found = False
+	while len(obj_pos) > 0:
+		color_map = []
+		for obj in obj_pos:
+			if desired_color == 'red':
+				color_map.append(vision_sensor(dimension, start, obj, obj_map)[0])
+				max_index = color_map.index(max(color_map))
+				end = obj_pos[max_index]
+			elif desired_color == 'green':
+				color_map.append(vision_sensor(dimension, start, obj, obj_map)[1])
+				max_index = color_map.index(max(color_map))
+				end = obj_pos[max_index]
+			elif desired_color == 'blue':
+				color_map.append(vision_sensor(dimension, start, obj, obj_map)[2])
+				max_index = color_map.index(max(color_map))
+				end = obj_pos[max_index]
+			else:
+				end = obj_pos[0]
+				min_dist = dimension ** 2
+				for pos in obj_pos:
+					dist = euclidean_distance(pos, start)
+					if dist < min_dist:
+						end = pos
+						min_dist = dist		
+		grid = []
+		for i in range(dimension+1):
+			row = []
+			for j in range(dimension+1):
+				if (i,j) in obst_pos:
+					row.append(1)
+				else:
+					row.append(0)
+			grid.append(row)
+		path = astar(grid, start, end, actions)
+		draw_path(path)
+		if robot_type == '6': # touch and tell shape
+			object_shape = obj_map[str(end)][1]
+			if object_shape == desired_shape or desired_shape == 'na':
+				user_input = input('Is this the desired object (y)? ')
+				if user_input == 'y' or user_input == 'Y':
+					goal_found = True
+					print ('Found the desired object!')
+					break
+		elif robot_type == '7': # touch and tell object
+			object_color = obj_map[str(end)][0]
+			object_shape = obj_map[str(end)][1]
+			if  (((desired_object in ['1', '2', '3']) and (object_color == desired_color)) or 
+				((desired_object in ['4', '5']) and (object_shape == desired_shape)) or 
+				((desired_object in ['6', '7', '8', '9', '10', '11']) and (object_color == desired_color) and (object_shape == desired_shape))):
+				user_input = input('Is this the desired object (y)? ')
+				if user_input == 'y' or user_input == 'Y':
+					goal_found = True
+					print ('Found the desired object!')
+					break
+		start = end
+		visited.append(end)
+		obj_pos.remove(end)
+	if goal_found == False:
+		print ('Could not find the desired object!')
